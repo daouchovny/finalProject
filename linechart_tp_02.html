@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>linechart_tp</title>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  
+  <style>
+  
+  </style>
+</head>
+
+<body>
+  
+  <svg id="s"></svg>
+  
+  <script>
+// x: 1萬華區;2南港區;3信義區;4松山區;5北投區;6文山區;7內湖區;8中正區;9中山區;10大安區;11大同區;12士林區
+// y(blue): youbike空車率(%)(2015/07)
+// z(red): 行政區平均年收入(萬)(2015)
+// p(green): 行政區總人口數(萬)(2015)
+  var arr=["萬華區","南港區","信義區","松山區","北投區","文山區","內湖區","中正區","中山區","大安區","大同區","士林區"]
+  var data = [
+  {dist:1, bike_empty:67.41, yr_ic:29.67, pop:19.35}, 
+  {dist:2, bike_empty:71.68, yr_ic:37.17, pop:12.25}, 
+  {dist:3, bike_empty:62.98, yr_ic:39.06, pop:22.78}, 
+  {dist:4, bike_empty:70.98, yr_ic:36.43, pop:20.83}, 
+  {dist:5, bike_empty:63.88, yr_ic:32.02, pop:25.73}, 
+  {dist:6, bike_empty:66.36, yr_ic:33.89, pop:27.52}, 
+  {dist:7, bike_empty:50.97, yr_ic:37.57, pop:28.77}, 
+  {dist:8, bike_empty:71.52, yr_ic:38.51, pop:16.04}, 
+  {dist:9, bike_empty:61.94, yr_ic:31.22, pop:23.12}, 
+  {dist:10, bike_empty:65.34, yr_ic:41.89, pop:31.15},
+  {dist:11, bike_empty:77.08, yr_ic:33.04, pop:13},
+  {dist:12, bike_empty:59.8, yr_ic:40.15, pop:28.99},
+  ];
+//  var data = [
+//  {"dist":"萬華區", "bike_empty":"67.41", "yr_ic":"29.67", "pop":"19.35"}, 
+//  {"dist":"南港區", "bike_empty":"71.68", "yr_ic":"37.17", "pop":"12.25"}, 
+//  {"dist":"信義區", "bike_empty":"62.98", "yr_ic":"39.06", "pop":"22.78"}, 
+//  {"dist":"松山區", "bike_empty":"70.98", "yr_ic":"36.43", "pop":"20.83"}, 
+//  {"dist":"北投區", "bike_empty":"63.88", "yr_ic":"32.02", "pop":"25.73"}, 
+//  {"dist":"文山區", "bike_empty":"66.36", "yr_ic":"33.89", "pop":"27.52"}, 
+//  {"dist":"內湖區", "bike_empty":"50.97", "yr_ic":"37.57", "pop":"28.77"}, 
+//  {"dist":"中正區", "bike_empty":"71.52", "yr_ic":"38.51", "pop":"16.04"}, 
+//  {"dist":"中山區", "bike_empty":"61.94", "yr_ic":"31.22", "pop":"23.12"}, 
+//  {"dist":"大安區", "bike_empty":"65.34", "yr_ic":"41.89", "pop":"31.15"},
+//  {"dist":"大同區", "bike_empty":"77.08", "yr_ic":"33.04", "pop":"13"},
+//  {"dist":"士林區", "bike_empty":"59.8", "yr_ic":"40.15", "pop":"28.99"},
+//  ];
+
+  var width = 800,
+    height = 400;
+
+  var s = d3.select('#s');
+
+  s.attr({
+      'width': 1400,
+      'height': 700,
+    }).style({
+      'border':'1px dotted #ccc'
+    });
+
+  var minX = d3.min(data, function(d){return d.dist});
+  var maxX = d3.max(data, function(d){return d.dist});
+  var minY = d3.min(data, function(d){return d.bike_empty});
+  var maxY = d3.max(data, function(d){return d.bike_empty});
+
+  var scaleX = d3.scale.linear()
+                 .range([0,width])
+                 .domain([minX,maxX]);
+
+  var scaleY = d3.scale.linear()
+                 .range([height,0])
+                 .domain([0,maxY]);
+      
+  // 3 lines
+  var line1 = d3.svg.line()
+    .x(function(d) {
+      return scaleX(d.dist);
+    }).y(function(d) {
+      return scaleY(d.bike_empty);
+    });
+      
+  var line2 = d3.svg.line()
+    .x(function(d) {
+      return scaleX(d.dist);
+    }).y(function(d) {
+      return scaleY(d.yr_ic);
+    });
+      
+  var line3 = d3.svg.line()
+    .x(function(d){
+        return scaleX(d.dist);
+    }).y(function(d){
+        return scaleY(d.pop); 
+    }); 
+
+  // 3 areas
+  var area1 = d3.svg.area()
+  .x(function(d) { return scaleX(d.dist); })
+  .y0(height)
+  .y1(function(d) { return scaleY(d.bike_empty); });
+
+  var area2 = d3.svg.area()
+  .x(function(d) { return scaleX(d.dist); })
+  .y0(height)
+  .y1(function(d) { return scaleY(d.yr_ic); });
+      
+  var area3 = d3.svg.area()
+  .x(function(d) { return scaleX(d.dist);})
+  .y0(height)
+  .y1(function(d) {return scaleY(d.pop);});
+  
+  // append path 1
+  s.append('path')
+    .attr({
+      'd':line1(data),
+      'stroke':'#06c',
+      'fill':'none',
+      'transform':'translate(35,20)' 
+    });
+
+  s.append('path')
+  .attr({
+    'd':area1(data),
+    'fill':'rgba(0,150,255,.1)',
+    'transform':'translate(35,20)' 
+  });
+  
+  // append path 2
+  s.append('path')
+    .attr({
+      'd':line2(data),
+      'stroke':'#c00',
+      'fill':'none',
+      'transform':'translate(35,20)' 
+    });
+
+  s.append('path')
+  .attr({
+    'd':area2(data),
+    'fill':'rgba(255,0,0,.1)',
+    'transform':'translate(35,20)' 
+  });
+  
+  // append path 3
+  s.append('path')
+    .attr({
+      'd':line3(data),
+      'stroke':'#a8bb19',
+      'fill':'none',
+      'transform':'translate(35,20)' 
+    });
+
+  s.append('path')
+  .attr({
+    'd':area3(data),
+    'fill':'rgba(0,255,0,.1)',
+    'transform':'translate(35,20)' 
+  });
+
+  // X & Y axis
+  var axisX = d3.svg.axis()
+    .scale(scaleX)
+    .orient("bottom")
+//    .tickValues([1,3,5,7,9])
+    .tickValues(["萬華區","南港區","信義區","松山區","北投區","文山區","內湖區","中正區","中山區","大安區","大同區","士林區"])
+    .tickFormat(function(d){return d;});
+//    .ticks(12);
+
+  var axisY = d3.svg.axis()
+    .scale(scaleY)
+    .orient("left")
+    .ticks(10);
+
+  // grid
+  var axisXGrid = d3.svg.axis()
+    .scale(scaleX)
+    .orient("bottom")
+    .ticks(12)
+    .tickFormat("")
+    .tickSize(-height,0);
+
+  var axisYGrid = d3.svg.axis()
+    .scale(scaleY)
+    .orient("left")
+    .ticks(10)
+    .tickFormat("")
+    .tickSize(-width,0);
+
+  // Axis Grid line
+  s.append('g')
+   .call(axisXGrid)
+   .attr({
+    'fill':'none',
+    'stroke':'rgba(0,0,0,.1)',
+    'transform':'translate(35,'+(height+20)+')' 
+   });
+
+  s.append('g')
+   .call(axisYGrid)
+   .attr({
+    'fill':'none',
+    'stroke':'rgba(0,0,0,.1)',
+    'transform':'translate(35,20)'
+   });
+
+  // Axis 
+  s.append('g')
+   .call(axisX)
+   .attr({
+    'fill':'none',
+    'stroke':'#000',
+    'transform':'translate(35,'+(height+20)+')' 
+   }).selectAll('text')
+   .attr({
+    'fill':'#000',
+    'stroke':'none',
+   }).style({
+    'font-size':'11px'
+   });
+
+  s.append('g')
+   .call(axisY)
+   .attr({
+    'fill':'none',
+    'stroke':'#000',
+    'transform':'translate(35,20)'
+   }).selectAll('text')
+   .attr({
+    'fill':'#000',
+    'stroke':'none',
+   }).style({
+    'font-size':'10px'
+   });
+  
+  </script>
+</body>
+
+</html>
