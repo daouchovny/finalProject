@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>linechart_tp</title>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  
+  <style>
+      #tooltip1, #tooltip2, #tooltip3 {
+            position: absolute;
+            left: 200px;
+            top: 100px;
+            background: #fff;
+            width: 180px;
+            height: auto;
+            padding: 0px 10px;
+            border-radius: 5px;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+        }
+      #tooltip1.hidden, #tooltip2.hidden, #tooltip3.hidden {
+            display: none;
+      }
+      
+  </style>
+</head>
+
+<body>
+  <div id="tooltip1" class="hidden">
+      <p><strong id="dist">Hello</strong></p>
+      <p id="bike_empty">tooltip</p>
+  </div>
+  
+  <div id="tooltip2" class="hidden">
+      <p><strong id="dist">Hello</strong></p>
+      <p id="yr_ic">tooltip</p>
+  </div>
+  
+  <div id="tooltip3" class="hidden">
+      <p><strong id="dist">Hello</strong></p>
+      <p id="pop">tooltip</p>
+  </div>
+  
+  <svg id="s"></svg>
+  
+  <script>
+  // bike_empty(blue): youbike空車率(%)(2015/07)
+  // yr_ic(red): 行政區平均年收入(萬)(2015)
+  // pop(green): 行政區總人口數(萬)(2015)
+  var data = [
+  {x:1, dist:"萬華區", bike_empty:67.41, yr_ic:29.67, pop:19.35}, 
+  {x:2, dist:"南港區", bike_empty:71.68, yr_ic:37.17, pop:12.25}, 
+  {x:3, dist:"信義區", bike_empty:62.98, yr_ic:39.06, pop:22.78}, 
+  {x:4, dist:"松山區", bike_empty:70.98, yr_ic:36.43, pop:20.83}, 
+  {x:5, dist:"北投區", bike_empty:63.88, yr_ic:32.02, pop:25.73}, 
+  {x:6, dist:"文山區", bike_empty:66.36, yr_ic:33.89, pop:27.52}, 
+  {x:7, dist:"內湖區", bike_empty:50.97, yr_ic:37.57, pop:28.77}, 
+  {x:8, dist:"中正區", bike_empty:71.52, yr_ic:38.51, pop:16.04}, 
+  {x:9, dist:"中山區", bike_empty:61.94, yr_ic:31.22, pop:23.12}, 
+  {x:10, dist:"大安區", bike_empty:65.34, yr_ic:41.89, pop:31.15},
+  {x:11, dist:"大同區", bike_empty:77.08, yr_ic:33.04, pop:13},
+  {x:12, dist:"士林區", bike_empty:59.8, yr_ic:40.15, pop:28.99},
+  ];
+
+  var width = 800,
+      height = 400;
+
+  var s = d3.select('#s');
+
+  s.attr({
+      'width': 1000,
+      'height': 600,
+    }).style({
+      'border':'1px dotted #ccc'
+    });
+
+  //  var minX = d3.min(data, function(d){return d.dist});
+  //  var maxX = d3.max(data, function(d){return d.dist});
+  var minY = d3.min(data, function(d){return d.bike_empty});
+  var maxY = d3.max(data, function(d){return d.bike_empty});
+
+  var scaleX = d3.scale.ordinal()
+                 .domain(data.map(function(d){return d.dist}))
+                 .rangePoints([0,width],0);
+
+  var scaleY = d3.scale.linear()
+                 .range([height,0])
+                 .domain([0,maxY]);
+      
+  // 3 lines
+  var line1 = d3.svg.line()
+    .x(function(d) {
+      return scaleX(d.dist);
+    }).y(function(d) {
+      return scaleY(d.bike_empty);
+    });
+      
+  var line2 = d3.svg.line()
+    .x(function(d) {
+      return scaleX(d.dist);
+    }).y(function(d) {
+      return scaleY(d.yr_ic);
+    });
+      
+  var line3 = d3.svg.line()
+    .x(function(d){
+        return scaleX(d.dist);
+    }).y(function(d){
+        return scaleY(d.pop); 
+    }); 
+
+  // 3 areas
+  var area1 = d3.svg.area()
+  .x(function(d) { return scaleX(d.dist); })
+  .y0(height)
+  .y1(function(d) { return scaleY(d.bike_empty); });
+
+  var area2 = d3.svg.area()
+  .x(function(d) { return scaleX(d.dist); })
+  .y0(height)
+  .y1(function(d) { return scaleY(d.yr_ic); });
+      
+  var area3 = d3.svg.area()
+  .x(function(d) { return scaleX(d.dist);})
+  .y0(height)
+  .y1(function(d) {return scaleY(d.pop);});
+  
+  // append path 1
+  s.append('path')
+    .attr({
+      'd':line1(data),
+      'stroke':'#06c',
+      'fill':'none',
+      'transform':'translate(35,20)' 
+    });
+
+  s.append('path')
+  .attr({
+    'd':area1(data),
+    'fill':'rgba(0,150,255,.1)',
+    'transform':'translate(35,20)' 
+  });
+  
+  // append path 2
+  s.append('path')
+    .attr({
+      'd':line2(data),
+      'stroke':'#c00',
+      'fill':'none',
+      'transform':'translate(35,20)' 
+    });
+
+  s.append('path')
+  .attr({
+    'd':area2(data),
+    'fill':'rgba(255,0,0,.1)',
+    'transform':'translate(35,20)' 
+  });
+  
+  // append path 3
+  s.append('path')
+    .attr({
+      'd':line3(data),
+      'stroke':'#a8bb19',
+      'fill':'none',
+      'transform':'translate(35,20)' 
+    });
+
+  s.append('path')
+  .attr({
+    'd':area3(data),
+    'fill':'rgba(0,255,0,.1)',
+    'transform':'translate(35,20)' 
+  });
+
+  // X & Y axis
+  var axisX = d3.svg.axis()
+    .scale(scaleX)
+    .orient("bottom")
+    .ticks(12);
+
+  var axisY = d3.svg.axis()
+    .scale(scaleY)
+    .orient("left")
+    .ticks(10);
+
+  // grid
+  var axisXGrid = d3.svg.axis()
+    .scale(scaleX)
+    .orient("bottom")
+    .ticks(12)
+    .tickFormat("")
+    .tickSize(-height,0);
+
+  var axisYGrid = d3.svg.axis()
+    .scale(scaleY)
+    .orient("left")
+    .ticks(10)
+    .tickFormat("")
+    .tickSize(-width,0);
+
+  // Axis Grid line
+  s.append('g')
+   .call(axisXGrid)
+   .attr({
+    'fill':'none',
+    'stroke':'rgba(0,0,0,.1)',
+    'transform':'translate(35,'+(height+20)+')' 
+   });
+
+  s.append('g')
+   .call(axisYGrid)
+   .attr({
+    'fill':'none',
+    'stroke':'rgba(0,0,0,.1)',
+    'transform':'translate(35,20)'
+   });
+
+  // X &Y axis 
+  s.append('g')
+   .call(axisX)
+   .attr({
+    'fill':'none',
+    'stroke':'#000',
+    'transform':'translate(35,'+(height+20)+')' 
+   }).selectAll('text')
+   .attr({
+    'fill':'#000',
+    'stroke':'none',
+   }).style({
+    'font-size':'12px'
+   });
+  
+  s.append('g')
+   .call(axisY)
+   .attr({
+    'fill':'none',
+    'stroke':'#000',
+    'transform':'translate(35,20)'
+   }).selectAll('text')
+   .attr({
+    'fill':'#000',
+    'stroke':'none',
+   }).style({
+    'font-size':'12px'
+   });
+      
+  // add dots on path 1, and add tooltip
+  s.selectAll('circle1')
+   .data(data)
+   .enter()
+   .append('circle')
+   .attr('cx', function(d) {
+            return scaleX(d.dist);
+        })
+   .attr('cy', function(d) {
+            return scaleY(d.bike_empty);
+        })
+   .attr('r', 5)
+   .attr({'fill':'#06c'})
+   .attr({'transform':'translate(35,20)'})
+   .on("mouseover", function(d){ 
+     var xPos = +d3.select(this).attr("cx"); 
+     var yPos = +d3.select(this).attr("cy"); 
+     var tooltip = d3.select("#tooltip1").style({
+         left: (xPos+60)+"px", 
+         top: (yPos+30)+"px"
+     });
+     tooltip.select("#dist").text(d.dist); 
+     tooltip.select("#bike_empty").text("空車率: "+d.bike_empty+"%");
+     d3.select("#tooltip1").classed("hidden", false);
+     }).on("mouseout", function(d){
+       
+     d3.select("#tooltip1").classed("hidden", true); 
+     });
+      
+  // add dots on path 2, and add tooltip
+  s.selectAll('circle2')
+   .data(data)
+   .enter()
+   .append('circle')
+   .attr('cx', function(d) {
+            return scaleX(d.dist);
+        })
+   .attr('cy', function(d) {
+            return scaleY(d.yr_ic);
+        })
+   .attr('r', 5)
+   .attr({'fill':'#c00'})
+   .attr({'transform':'translate(35,20)'})
+   .on("mouseover", function(d){
+     var xPos = +d3.select(this).attr("cx"); 
+     var yPos = +d3.select(this).attr("cy"); 
+     var tooltip = d3.select("#tooltip2").style({
+         left: (xPos+60)+"px", 
+         top: (yPos+30)+"px"
+     });
+     tooltip.select("#dist").text(d.dist); 
+     tooltip.select("#yr_ic").text("平均年收入: "+d.yr_ic+"萬/年");
+     d3.select("#tooltip2").classed("hidden", false);
+     }).on("mouseout", function(d){
+       
+     d3.select("#tooltip2").classed("hidden", true); 
+     });
+      
+  // add dots on path 3
+  s.selectAll('circle3')
+   .data(data)
+   .enter()
+   .append('circle')
+   .attr('cx', function(d) {
+            return scaleX(d.dist);
+        })
+   .attr('cy', function(d) {
+            return scaleY(d.pop);
+        })
+   .attr('r', 5)
+   .attr({'fill':'#a8bb19'})
+   .attr({'transform':'translate(35,20)'})
+   .on("mouseover", function(d){ 
+     var xPos = +d3.select(this).attr("cx"); 
+     var yPos = +d3.select(this).attr("cy"); 
+     var tooltip = d3.select("#tooltip3").style({
+         left: (xPos+60)+"px", 
+         top: (yPos+30)+"px"
+     });
+     tooltip.select("#dist").text(d.dist); 
+     tooltip.select("#pop").text("人口數: "+d.pop+"萬人");
+     d3.select("#tooltip3").classed("hidden", false);
+     }).on("mouseout", function(d){
+       
+     d3.select("#tooltip3").classed("hidden", true); 
+     });
+
+  </script>
+</body>
+
+</html>
